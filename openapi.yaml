@@ -36,6 +36,58 @@ tags:
     - name: Moderations
       description: Given a input text, outputs if the model classifies it as potentially harmful.
 paths:
+    # Decentralized API endpoints
+    /de-metadata:
+        get: 
+            operationId: getDeMetadata
+            tags:
+              - DecentralizedMeta
+            summary: Get information on this inference provider
+            responses:
+                "200":
+                    description: OK
+                    content: 
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DecentralizedMetadataResponse"
+            x-oaiMeta:
+                name: Get Decentralized Metadata
+                group: decentralized-metadata
+                returns: Metadata associated to this server
+                examples:
+                    request:
+                        curl: |
+                            curl https://your-inference-provider/v1/de-metadata \
+                              -H "Authorization: Bearer $OPENAI_API_KEY"
+                        python: |
+                            from openai import OpenAI
+                            client = OpenAI()
+
+                            client.decentralized_metadata.getDeMetadata()
+                        node.js: |-
+                            import OpenAI from "openai";
+
+                            const openai = new OpenAI();
+
+                            async function main() {
+                              const list = await openai.decentralized_metadata.getDeMetadata();
+
+                              for await (const file of list) {
+                                console.log(file);
+                              }
+                            }
+
+                            main();
+                    response: |
+                        {
+                          "provider_name": "Provider Name",
+                          "reputation_score": 12345,
+                          "stake_score": 12345,
+                          "metadata": {
+                            "key": "value"
+                          }
+                        }
+
     # Note: When adding an endpoint, make sure you also add it in the `groups` section, in the end of this file,
     # under the appropriate group
     /chat/completions:
@@ -13395,6 +13447,30 @@ components:
                 - data
                 - has_more
 
+        DecentralizedMetadataResponse:
+            type: object
+            properties:
+                provider_name:
+                    type: string
+                    example: "6079ai"
+                reputation_score:
+                    type: number
+                    description: A score that represents their reputation in the decentralized system
+                    example: 12345
+                stake_score:
+                    type: number
+                    description: A score that represents their staking in the decentralized system
+                    example: 12345
+                metadata:
+                    type: object
+                    nullable: true
+                    additionalProperties:
+                        type: string
+            required:
+                - provider_name
+                - reputation_score
+                - stake_score
+
 security:
     - ApiKeyAuth: []
 
@@ -13406,6 +13482,8 @@ x-oaiMeta:
           title: Assistants
         - id: legacy
           title: Legacy
+        - id: decentralized-endpoints
+          title: Decentralized Endpoints
     groups:
         # > General Notes
         # The `groups` section is used to generate the API reference pages and navigation, in the same
@@ -13428,6 +13506,16 @@ x-oaiMeta:
         #                         chat completion and completion endpoints, with streamed and non-streamed examples.
         # - `x-oaiMeta.returns`: text describing what the endpoint returns.
         # - `summary`: The summary of the endpoint, which will be used to generate the section description
+        - id: decentralized-metadata
+          description: | 
+            Get more information about your decentralized inference provider.
+
+            Learn more about standards with Proof of Inference Protocol
+          navigationGroup: decentralized-endpoints
+          sections:
+            - type: endpoint
+              key: getDeMetadata
+              path: getDeMetadata
         - id: audio
           title: Audio
           description: |
